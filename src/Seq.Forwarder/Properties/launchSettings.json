@@ -2,7 +2,15 @@
   "profiles": {
     "Seq.Forwarder": {
       "commandName": "Project",
-      "commandLineArgs": "run"
+      "commandLineArgs": "run -u=http://192.168.10.3:5341"
+    },
+    "Seq.Forwarder help": {
+      "commandName": "Project",
+      "commandLineArgs": "help run"
+    },
+    "Seq.Forwarder config test": {
+      "commandName": "Project",
+      "commandLineArgs": "config -k diagnostics.internalLoggingLevel --value=Error"
     }
   }
 }

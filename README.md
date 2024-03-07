@@ -1,4 +1,9 @@
-# Seq Forwarder [![Build status](https://ci.appveyor.com/api/projects/status/qdvdn50xqwi43jkm?svg=true)](https://ci.appveyor.com/project/datalust/seq-forwarder) [![Join the chat at https://gitter.im/datalust/seq](https://img.shields.io/gitter/room/datalust/seq.svg)](https://gitter.im/datalust/seq) [![Download](https://img.shields.io/github/release/datalust/seq-forwarder.svg)](https://github.com/datalust/seq-forwarder/releases)
+# Seq Forwarder (fork for Linux)
+
+This fork is made to support launching a Seq Forwarder under Linux as a service.
+A description of the changes made to the main code can be found in the [file](deb/README.md). Below is the original text of the Seq Forwarder description.
+
+---
 
 Seq Forwarder is a client-side log collector that receives events over its local HTTP API and persists them to its own 
 internal storage until a remote Seq server can be reached.

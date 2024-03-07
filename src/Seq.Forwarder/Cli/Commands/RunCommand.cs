@@ -25,6 +25,7 @@ using System.Security.Cryptography.X509Certificates;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
 using Seq.Forwarder.Util;
 using Seq.Forwarder.Web.Host;
 using Serilog.Core;
@@ -38,6 +39,7 @@ namespace Seq.Forwarder.Cli.Commands
     {
         readonly StoragePathFeature _storagePath;
         readonly ListenUriFeature _listenUri;
+        readonly ServerInformationFeature _serverInfo;
 
         bool _noLogo;
 
@@ -46,11 +48,12 @@ namespace Seq.Forwarder.Cli.Commands
             Options.Add("nologo", _ => _noLogo = true);
             _storagePath = Enable<StoragePathFeature>();
             _listenUri = Enable<ListenUriFeature>();
+            _serverInfo = Enable<ServerInformationFeature>();
         }
 
         protected override int Run(TextWriter cout)
         {
-            if (Environment.UserInteractive)
+            if (Environment.UserInteractive && !SystemdHelpers.IsSystemdService())
             {
                 if (!_noLogo)
                 {
@@ -90,6 +93,7 @@ namespace Seq.Forwarder.Cli.Commands
             {
                 ILifetimeScope? container = null;
                 using var host = new HostBuilder()
+                    .UseSystemd().UseConsoleLifetime()
                     .UseSerilog()
                     .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                     .ConfigureContainer<ContainerBuilder>(builder =>
@@ -140,13 +144,26 @@ namespace Seq.Forwarder.Cli.Commands
 
                 if (container == null) throw new Exception("Host did not build container.");
                 
+                if (_serverInfo.IsUrlSpecified || _serverInfo.IsApiKeySpecified)
+                {
+                    var outputConfig = container.Resolve<SeqForwarderOutputConfig>();
+                    if (_serverInfo.IsUrlSpecified )
+                        outputConfig.ServerUrl = _serverInfo.Url;
+                    if (_serverInfo.IsApiKeySpecified)
+                        outputConfig.ApiKey = _serverInfo.ApiKey;
+                }
+                
                 var service = container.Resolve<ServerService>(
                     new TypedParameter(typeof(IHost), host),
                     new NamedParameter("listenUri", listenUri));
                 
-                var exit = ExecutionEnvironment.SupportsStandardIO
-                    ? RunStandardIO(service, cout)
-                    : RunService(service);
+                int exit;
+                if (SystemdHelpers.IsSystemdService() || ExecutionEnvironment.SupportsStandardIO)
+                {
+                    exit = RunStandardIO(service, host);
+                }
+                else
+                    exit = RunService(service);
 
                 return exit;
             }
@@ -179,7 +196,9 @@ namespace Seq.Forwarder.Cli.Commands
                     rollingInterval: RollingInterval.Day,
                     fileSizeLimitBytes: 1024 * 1024);
 
-            if (Environment.UserInteractive)
+            if(SystemdHelpers.IsSystemdService())//write FATAL only to SYSLOG
+                loggerConfiguration.WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Fatal);
+            else if (Environment.UserInteractive)
                 loggerConfiguration.WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information);
 
             if (!string.IsNullOrWhiteSpace(internalLogServerUri))
@@ -209,26 +228,10 @@ namespace Seq.Forwarder.Cli.Commands
 #endif
         }
         
-        static int RunStandardIO(ServerService service, TextWriter cout)
+        static int RunStandardIO(ServerService service, IHost host)
         {
             service.Start();
-
-            try
-            {
-                Console.TreatControlCAsInput = true;
-                var k = Console.ReadKey(true);
-                while (k.Key != ConsoleKey.C || !k.Modifiers.HasFlag(ConsoleModifiers.Control))
-                    k = Console.ReadKey(true);
-
-                cout.WriteLine("Ctrl+C pressed; stopping...");
-                Console.TreatControlCAsInput = false;
-            }
-            catch (Exception ex)
-            {
-                Log.Debug(ex, "Console not attached, waiting for any input");
-                Console.Read();
-            }
-
+            host.WaitForShutdownAsync().Wait();
             service.Stop();
 
             return 0;

@@ -1,0 +1,64 @@
+#!/bin/bash
+after_upgrade() {
+    :
+    chown -R seqfwd:root /var/lib/seqfwd/
+    chown -R seqfwd:root /var/log/seqfwd
+    chmod 644 /lib/systemd/system/seqfwd.service
+    chmod 644 /etc/systemd/system/seqfwd.service.d/override.conf
+
+systemctl --system daemon-reload >/dev/null || true
+if ! systemctl is-enabled seqfwd.service >/dev/null 
+then
+    systemctl enable seqfwd.service >/dev/null || true
+    systemctl start seqfwd.service >/dev/null || true
+else
+    systemctl restart seqfwd.service >/dev/null || true
+fi
+
+}
+
+after_install() {
+    :
+mkdir -p /var/lib/seqfwd
+if id "seqfwd" &>/dev/null; then
+    echo "User 'seqfwd' already exist"
+else
+  useradd -r -d /var/lib/seqfwd/ -M seqfwd && echo "User 'seqfwd' created"
+fi
+chown -R seqfwd:root /var/lib/seqfwd/
+mkdir -p /var/log/seqfwd
+chown -R seqfwd:root /var/log/seqfwd
+chmod 644 /lib/systemd/system/seqfwd.service
+chmod 644 /etc/systemd/system/seqfwd.service.d/override.conf
+
+/usr/lib/seqfwd/seqfwd config -s /var/lib/seqfwd/ -k storage.bufferSizeBytes -v 1073741824
+/usr/lib/seqfwd/seqfwd config -s /var/lib/seqfwd/ -k diagnostics.internalLogPath --value="/var/log/seqfwd"
+/usr/lib/seqfwd/seqfwd config -s /var/lib/seqfwd/ -k diagnostics.internalLoggingLevel --value=Error
+
+systemctl --system daemon-reload >/dev/null || true
+systemctl enable seqfwd.service >/dev/null || true
+systemctl start seqfwd.service >/dev/null || true
+}
+
+if [ "${1}" = "configure" -a -z "${2}" ] || \
+   [ "${1}" = "abort-remove" ]
+then
+    # "after install" here
+    # "abort-remove" happens when the pre-removal script failed.
+    #   In that case, this script, which should be idemptoent, is run
+    #   to ensure a clean roll-back of the removal.
+    after_install
+elif [ "${1}" = "configure" -a -n "${2}" ]
+then
+    upgradeFromVersion="${2}"
+    # "after upgrade" here
+    # NOTE: This slot is also used when deb packages are removed,
+    # but their config files aren't, but a newer version of the
+    # package is installed later, called "Config-Files" state.
+    # basically, that still looks a _lot_ like an upgrade to me.
+    after_upgrade "${2}"
+elif echo "${1}" | grep -E -q "(abort|fail)"
+then
+    echo "Failed to install before the post-installation script was run." >&2
+    exit 1
+fi

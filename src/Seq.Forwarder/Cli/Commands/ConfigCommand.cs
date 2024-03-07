@@ -117,7 +117,9 @@ namespace Seq.Forwarder.Cli.Commands
             if (second == null)
                 throw new ArgumentException("The key could not be found; run the command without any arguments to view all keys.");
 
-            var targetValue = Convert.ChangeType(value, second.PropertyType);
+            var targetValue = second.PropertyType.IsEnum && value != null
+                ? Enum.Parse(second.PropertyType, value)
+                : Convert.ChangeType(value, second.PropertyType);
             second.SetValue(v, targetValue);
         }
 

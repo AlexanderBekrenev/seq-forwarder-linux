@@ -1,0 +1,17 @@
+[Unit]
+Description=Seq HTTP Log Forwarder
+After=syslog.target network.target
+
+[Service]
+User=tg-user
+PrivateTmp=true
+WorkingDirectory=/var/lib/seqfwd/
+ExecStart=/usr/lib/seqfwd/seqfwd run
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=seqfwd
+Restart=always
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target
