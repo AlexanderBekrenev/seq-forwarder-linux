@@ -14,7 +14,7 @@ I wanted Seq Forwarder to be its own daemon controlled by Systemd.
 
 * Systemd service **seqfwd**
 * Installation using Debian package (segfwd-...-amd64.deb)
-* Ability to assemble a custom deb-package with a preset Sec server URL (segfwd-...-amd64-custom.deb)
+* Ability to assemble a custom deb-package with a preset Sec server URL (segfwd-custom-...-amd64.deb)
 * All events are now transmitted from the client “as-is”, in the CLEF format.
 * Added return of a logging level for clients without an API key when the forwarder uses its own key.
 
@@ -60,18 +60,18 @@ Key points of the installed service:
 
 * Open the console in the `/deb` folder.
 * Run the script `./builddeb.sh`
-* The package is ready: `seqfwd-2.1.128.0-amd64.deb`
+* The package is ready: `seqfwd-2.1.128.2-amd64.deb`
 
 If you want to make a custom package, you can set the Sec server URL using the script parameter.
 For example, run `./builddeb.sh http://192.168.10.3:5341`  
-As a result, we will get a packet `seqfwd-2.1.128.0-amd64-custom.deb` with a preset address.
+As a result, we will get a packet `seqfwd-custom-2.1.128.2-amd64.deb` with a preset address.
 
 ### Install service
 
 Install the deb package on the server in any way convenient for you.  
 You may be using your own repository.  
 Alternatively, you can simply copy the package file to the server and 
-install using the `dpkg -i seqfwd-2.1.128.0-amd64.deb` command.
+install using the `dpkg -i seqfwd-2.1.128.2-amd64.deb` command.
 
 If you created a custom package and do not use API keys, then the service is ready to use.  
 Otherwise, you need to configure it.
