@@ -1,7 +1,7 @@
 # Seq Forwarder (fork for Linux)
 
-This fork is made to support launching a Seq Forwarder under Linux as a service.
-A description of the changes made to the main code can be found in the [file](deb/README.md). Below is the original text of the Seq Forwarder description.
+This fork is made to support launching a Seq Forwarder under Linux as a service. And also added support for correct span/activity forwarding.
+A description of the changes made to the main code can be found in the [deb/README](deb/README.md) file. Below is the original text of the Seq Forwarder description.
 
 ---
 
