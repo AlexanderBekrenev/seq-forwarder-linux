@@ -1,7 +1,8 @@
 Package:seqfwd
 Version:X.X
-Maintainer:Datalust Pty Ltd, Contributors. Packed by Traveknowledgy <tech@traveknowledgy.com>
+Maintainer:Datalust Pty Ltd, Contributors. Packed by Alexander Bekrenev.
 Architecture:amd64
-Section:non-free
+Section:net
 Description:Seq HTTP Log Forwarder
 Depends:liblmdb-dev
+Conflicts:seqfwd-custom
