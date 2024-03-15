@@ -13,7 +13,7 @@ if [ -z "$VERSION" ]; then
 fi
 if [[ -n $URL ]]
 then
-    ARCH="$ARCH-custom"
+    VERSION="custom-$VERSION"
 fi
 
 echo "Build DEB-package for seqfwd version $VERSION"
