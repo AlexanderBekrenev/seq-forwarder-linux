@@ -11,6 +11,10 @@
     "Seq.Forwarder config test": {
       "commandName": "Project",
       "commandLineArgs": "config -k diagnostics.internalLoggingLevel --value=Error"
+    },
+    "Seq.Forwarder LAN forward": {
+      "commandName": "Project",
+      "commandLineArgs": "run -u=http://192.168.10.3:5341 --apikey=8SOSl2bbfYwUTP4cwGsZ"
     }
   }
 }

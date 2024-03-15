@@ -132,13 +132,14 @@ namespace Seq.Forwarder.Web.Api
                         throw new RequestProcessingException($"Invalid raw event JSON, item on line {lineNumber} could not be parsed.");
                     }
 
-                    if (!EventSchema.FromClefFormat(lineNumber, item, out var evt, out var err))
-                    {
-                        IngestionLog.ForPayload(ClientHostIP, line).Debug("Rejecting CLEF payload due to invalid event JSON structure: {NormalizationError}", err);
-                        throw new RequestProcessingException(err);
-                    }
-
-                    rawFormat.Add(evt);
+                    // if (!EventSchema.FromClefFormat(lineNumber, item, out var evt, out var err))
+                    // {
+                    //     IngestionLog.ForPayload(ClientHostIP, line).Debug("Rejecting CLEF payload due to invalid event JSON structure: {NormalizationError}", err);
+                    //     throw new RequestProcessingException(err);
+                    // }
+                    //
+                    //rawFormat.Add(evt);
+                    rawFormat.Add(item);
                 }
 
                 line = await reader.ReadLineAsync();
@@ -169,26 +170,39 @@ namespace Seq.Forwarder.Web.Api
 
                     if (jo != null)
                     {
-                        jo.Remove("Timestamp");
-                        jo.Remove("Level");
+                        // jo.Remove("Timestamp");
+                        // jo.Remove("Level");
+                        jo.Remove("@t");
+                        jo.Remove("@l");
                     }
 
                     var startToLog = (int) Math.Min(_outputConfig.EventBodyLimitBytes / 2, 1024);
                     var compactPrefix = e.ToString(Formatting.None).Substring(0, startToLog);
 
-                    encoded[i] = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                    var result = new JObject
                     {
-                        Timestamp = timestamp,
-                        MessageTemplate = "Seq Forwarder received and dropped an oversized event",
-                        Level = level,
-                        Properties = new
-                        {
-                            Partial = compactPrefix,
-                            Environment.MachineName,
-                            _outputConfig.EventBodyLimitBytes,
-                            PayloadBytes = payload.Length
-                        }
-                    }));
+                        { "@t", timestamp },
+                        { "@mt", "Seq Forwarder received and dropped an oversized event" },
+                        {"@l",level},
+                        {"Partial",compactPrefix},
+                        {"MachineName", Environment.MachineName},
+                        {"EventBodyLimitBytes",_outputConfig.EventBodyLimitBytes},
+                        {"PayloadBytes", payload.Length}
+                    };
+                    encoded[i] = Encoding.UTF8.GetBytes(result.ToString());
+                    // encoded[i] = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                    // {
+                    //     Timestamp = timestamp,
+                    //     MessageTemplate = "Seq Forwarder received and dropped an oversized event",
+                    //     Level = level,
+                    //     Properties = new
+                    //     {
+                    //         Partial = compactPrefix,
+                    //         Environment.MachineName,
+                    //         _outputConfig.EventBodyLimitBytes,
+                    //         PayloadBytes = payload.Length
+                    //     }
+                    // }));
                 }
                 else
                 {
@@ -206,7 +220,8 @@ namespace Seq.Forwarder.Web.Api
             var apiKey = GetRequestApiKeyToken();
             _logBufferMap.GetLogBuffer(apiKey).Enqueue(encodedEvents);
             
-            var response = Content(_serverResponseProxy.GetResponseText(apiKey), "application/json", Encoding);
+            // Use response to the proxy key if the client does not have one because a proxy key was used when sending.
+            var response = Content(_serverResponseProxy.GetResponseText(apiKey ?? _outputConfig.ApiKey), "application/json", Encoding);
             response.StatusCode = (int)HttpStatusCode.Created;
             return response;
         }
