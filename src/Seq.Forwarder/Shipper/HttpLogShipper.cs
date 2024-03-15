@@ -132,7 +132,7 @@ namespace Seq.Forwarder.Shipper
                     MakePayload(available, sendingSingles > 0, out Stream payload, out ulong lastIncluded);
 
                     var content = new StreamContent(new UnclosableStreamWrapper(payload));
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json")
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.serilog.clef")
                     {
                         CharSet = Encoding.UTF8.WebName
                     };
@@ -210,8 +210,6 @@ namespace Seq.Forwarder.Shipper
 
             var raw = new MemoryStream();
             var content = new StreamWriter(raw, Encoding.UTF8);
-            content.Write("{\"Events\":[");
-            content.Flush();
             var contentRemainingBytes = (int) _outputConfig.RawPayloadLimitBytes - 13; // Includes closing delims
 
             var delimStart = "";
@@ -237,12 +235,11 @@ namespace Seq.Forwarder.Shipper
 
                 lastIncluded = logBufferEntry.Key;
 
-                delimStart = ",";
+                delimStart = "\n";
                 if (oneOnly)
                     break;
             }
 
-            content.Write("]}");
             content.Flush();
             raw.Position = 0;
             utf8Payload = raw;
