@@ -42,6 +42,7 @@ then
   echo "Change package name to $PACKAGE"
   sed -i "s/Package:seqfwd/Package:$PACKAGE/g" $PACKAGE-$VERSION-$ARCH/DEBIAN/control
   sed -i "s/Conflicts:seqfwd-custom/Conflicts:seqfwd/g" $PACKAGE-$VERSION-$ARCH/DEBIAN/control
+  sed -i "s/Section:net/Section:non-free/g" $PACKAGE-$VERSION-$ARCH/DEBIAN/control
   echo "Set server url to $URL"
   sed -i "s|\-\-url=http:\/\/localhost:5341|--url=$URL|gm" $PACKAGE-$VERSION-$ARCH//etc/systemd/system/seqfwd.service.d/override.conf
 fi 
