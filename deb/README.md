@@ -31,6 +31,12 @@ When running as a service, error logging has been changed. Only FATAL level erro
 
 Fixed a bug with setting the configuration parameter `diagnostics.internalLoggingLevel` (ConfigCommand.cs)
 
+`HttpLogShipper` upload events with "application/vnd.serilog.clef" content type.  
+Events are in CLEF format now.
+
+`IngestionController` leaves incoming events in CLEF format; and method `EventSchema.FromClefFormat` is not used anymore.  
+Changed behavior when we use a forwarder with a given API key. Clients that do not use their API key receive a response indicating the logging level switch instead of an empty response.
+
 ## Deb-package
 
 Everything related to the deb package is located in the `/deb` directory.  
