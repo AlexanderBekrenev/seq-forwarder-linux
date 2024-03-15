@@ -15,7 +15,7 @@ I wanted Seq Forwarder to be its own daemon controlled by Systemd.
 * Systemd service **seqfwd**
 * Installation using Debian package (segfwd-...-amd64.deb)
 * Ability to assemble a custom deb-package with a preset Sec server URL (segfwd-custom-...-amd64.deb)
-* All events are now transmitted from the client “as-is”, in the CLEF format.
+* All events are now transmitted from the client “as-is”, in the CLEF format. This was necessary to support correct span/activity forwarding.
 * Added return of a logging level for clients without an API key when the forwarder uses its own key.
 
 If you are not very interested in what was changed and what was done, then feel free to skip to the [How-to](#How-to) chapter.
