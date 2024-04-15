@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="2.1.128.2"
+VERSION="2.1.128.3"
 ARCH="amd64"
 PACKAGE="seqfwd"
 
